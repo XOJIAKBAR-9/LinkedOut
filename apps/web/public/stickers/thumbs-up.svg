@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160">
+<defs><filter id="cut" x="-20%" y="-20%" width="140%" height="140%">
+<feMorphology in="SourceAlpha" operator="dilate" radius="6" result="dil"/>
+<feFlood flood-color="#fff" result="white"/>
+<feComposite in="white" in2="dil" operator="in" result="outline"/>
+<feGaussianBlur in="dil" stdDeviation="3" result="blur"/>
+<feOffset in="blur" dy="3" result="off"/>
+<feComponentTransfer in="off" result="shadow"><feFuncA type="linear" slope="0.3"/></feComponentTransfer>
+<feMerge><feMergeNode in="shadow"/><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter></defs>
+<g filter="url(#cut)" stroke="#1f2937" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M60 74 L80 30 Q96 26 94 46 L90 68 H124 Q138 70 134 84 L126 122 Q122 134 108 134 H60 Z" fill="#fcd34d"/><rect x="26" y="70" width="34" height="66" rx="8" fill="#0d9488"/><path d="M96 86 H130 M94 104 H128 M92 120 H122" fill="none" stroke-width="4"/>
+</g></svg>
