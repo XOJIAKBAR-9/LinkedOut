@@ -1,0 +1,313 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users & auth ──────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String? // null for OAuth-only accounts
+  githubId      String?  @unique
+  emailVerified Boolean  @default(false)
+  /// Fake account created by the seed script. Hidden from search suggestions.
+  isSample      Boolean  @default(false)
+  firstName     String
+  lastName      String
+  headline      String?
+  about         String?
+  location      String?
+  avatarUrl     String?
+  bannerUrl     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  /// Generated column (see migration SQL); used for full-text search.
+  searchVector Unsupported("tsvector")? @default(dbgenerated())
+
+  refreshTokens      RefreshToken[]
+  emailTokens        EmailToken[]
+  posts              Post[]
+  comments           Comment[]
+  repliedTo          Comment[]                 @relation("CommentReplyTo")
+  reactions          Reaction[]
+  experiences        Experience[]
+  sentRequests       Connection[]              @relation("ConnectionRequester")
+  receivedRequests   Connection[]              @relation("ConnectionAddressee")
+  participations     ConversationParticipant[]
+  messages           Message[]
+  groupMemberships   GroupMember[]
+  ownedGroups        Group[]                   @relation("GroupOwner")
+  notifications      Notification[]            @relation("NotificationRecipient")
+  actedNotifications Notification[]            @relation("NotificationActor")
+
+  @@index([searchVector], type: Gin)
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum EmailTokenType {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+}
+
+model EmailToken {
+  id        String         @id @default(cuid())
+  userId    String
+  type      EmailTokenType
+  tokenHash String         @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime       @default(now())
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+}
+
+// ─── Companies & experience ───────────────────────────────────
+
+model Company {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  industry    String?
+  description String?
+  website     String?
+  logoUrl     String?
+  size        String?
+  location    String?
+  createdAt   DateTime @default(now())
+
+  searchVector Unsupported("tsvector")? @default(dbgenerated())
+
+  experiences Experience[]
+
+  @@index([searchVector], type: Gin)
+}
+
+model Experience {
+  id          String    @id @default(cuid())
+  userId      String
+  companyId   String?
+  title       String
+  companyName String // denormalised so free-text companies work too
+  location    String?
+  startDate   DateTime
+  endDate     DateTime?
+  description String?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company     Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+}
+
+// ─── Network ──────────────────────────────────────────────────
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+}
+
+model Connection {
+  id          String           @id @default(cuid())
+  requesterId String
+  addresseeId String
+  status      ConnectionStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  requester   User             @relation("ConnectionRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee   User             @relation("ConnectionAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@index([addresseeId, status])
+}
+
+// ─── Feed ─────────────────────────────────────────────────────
+
+model Post {
+  id        String   @id @default(cuid())
+  authorId  String
+  content   String
+  imageUrl  String?
+  groupId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  searchVector Unsupported("tsvector")? @default(dbgenerated())
+
+  author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  group         Group?         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  comments      Comment[]
+  reactions     Reaction[]
+  notifications Notification[]
+
+  @@index([createdAt(sort: Desc), id])
+  @@index([authorId])
+  @@index([searchVector], type: Gin)
+}
+
+model Comment {
+  id            String         @id @default(cuid())
+  postId        String
+  authorId      String
+  /// Top-level comment this is a reply to. Threads are one level deep: replies to replies share the same parent.
+  parentId      String?
+  content       String
+  createdAt     DateTime       @default(now())
+  post          Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  /// Author of the comment being answered (for "@Name" in replies-to-replies).
+  replyToId     String?
+  replyTo       User?          @relation("CommentReplyTo", fields: [replyToId], references: [id], onDelete: SetNull)
+  parent        Comment?       @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies       Comment[]      @relation("CommentReplies")
+  notifications Notification[]
+
+  @@index([postId, parentId, createdAt])
+  @@index([parentId, createdAt])
+}
+
+enum ReactionType {
+  LIKE
+  CELEBRATE
+  SUPPORT
+  INSIGHTFUL
+  FUNNY
+}
+
+model Reaction {
+  id        String       @id @default(cuid())
+  postId    String
+  userId    String
+  type      ReactionType
+  createdAt DateTime     @default(now())
+  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+}
+
+// ─── Messaging ────────────────────────────────────────────────
+
+model Conversation {
+  id           String                    @id @default(cuid())
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+
+model ConversationParticipant {
+  conversationId String
+  userId         String
+  lastReadAt     DateTime?
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId])
+}
+
+enum MessageType {
+  TEXT
+  STICKER
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  type           MessageType  @default(TEXT)
+  /// Text for TEXT messages; empty for stickers and deleted messages.
+  content        String
+  /// Sticker id from the shared STICKERS list (STICKER messages only).
+  stickerId      String?
+  createdAt      DateTime     @default(now())
+  /// Set when the sender edits the text.
+  editedAt       DateTime?
+  /// Set when the sender deletes it ("This message was deleted" for everyone); content is wiped.
+  deletedAt      DateTime?
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+}
+
+// ─── Groups ───────────────────────────────────────────────────
+
+model Group {
+  id          String        @id @default(cuid())
+  name        String
+  slug        String        @unique
+  description String?
+  ownerId     String
+  createdAt   DateTime      @default(now())
+  owner       User          @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     GroupMember[]
+  posts       Post[]
+}
+
+enum GroupRole {
+  MEMBER
+  ADMIN
+}
+
+model GroupMember {
+  groupId  String
+  userId   String
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, userId])
+}
+
+// ─── Notifications ────────────────────────────────────────────
+
+enum NotificationType {
+  REACTION
+  COMMENT
+  REPLY
+  CONNECTION_REQUEST
+  CONNECTION_ACCEPTED
+  MESSAGE
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  recipientId String
+  actorId     String?
+  type        NotificationType
+  /// Connection id for CONNECTION_* notifications.
+  entityId    String?
+  /// Post the notification is about (REACTION, COMMENT, REPLY). Deleting the post removes the notification.
+  postId      String?
+  /// The new comment or reply (COMMENT, REPLY), so the link can open and highlight it.
+  commentId   String?
+  read        Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  recipient   User             @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  actor       User?            @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  post        Post?            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment     Comment?         @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, read, createdAt])
+  @@index([postId])
+  @@index([commentId])
+}
