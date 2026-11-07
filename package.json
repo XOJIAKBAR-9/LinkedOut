@@ -1,0 +1,26 @@
+{
+  "name": "linkedout",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run build -w @linkedout/shared && concurrently -n shared,api,web -c blue,green,magenta \"npm run dev -w @linkedout/shared\" \"npm run dev -w @linkedout/api\" \"npm run dev -w @linkedout/web\"",
+    "build": "npm run build -w @linkedout/shared && npm run build -w @linkedout/api && npm run build -w @linkedout/web",
+    "typecheck": "npm run build -w @linkedout/shared && npm run typecheck -w @linkedout/api && npm run typecheck -w @linkedout/web",
+    "test": "npm run build -w @linkedout/shared && npm run test -w @linkedout/api && npm run test -w @linkedout/web",
+    "test:e2e": "npm run test:e2e -w @linkedout/web",
+    "db:up": "docker compose up -d db",
+    "db:migrate": "npm run db:migrate -w @linkedout/api",
+    "db:seed": "npm run db:seed -w @linkedout/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
