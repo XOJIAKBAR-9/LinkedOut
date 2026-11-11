@@ -33,7 +33,7 @@ describe("delete account", () => {
 
     // …and data touching other people.
     const friendPost = (await friend.agent.post("/api/v1/posts").field("content", "hello").expect(201)).body.post;
-    await me.agent.put(`/api/v1/posts/${friendPost.id}/reaction`).send({ type: "LIKE" }).expect(200);
+    await me.agent.put(`/api/v1/posts/${friendPost.id}/reaction`).send({ type: "SAME" }).expect(200);
     await me.agent.post(`/api/v1/posts/${friendPost.id}/comments`).send({ content: "nice" }).expect(201);
     const conn = (await me.agent.post(`/api/v1/users/${friend.user.id}/connect`).expect(201)).body.connection;
     await friend.agent.post(`/api/v1/connections/${conn.id}/accept`).expect(200);

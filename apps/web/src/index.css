@@ -2,57 +2,141 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * LinkedOut design tokens — direction A, "Exit interview".
+ * Redline on paper: warm ink in dark mode, off-white paper in light mode.
+ * Every foreground/background pair below meets WCAG AA (4.5:1 for text).
+ */
 @layer base {
   :root {
-    --background: 200 25% 95%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 174 86% 30%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 94%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 94%;
-    --muted-foreground: 215 16% 42%;
-    --accent: 172 60% 90%;
-    --accent-foreground: 175 86% 20%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 88%;
-    --input: 214 32% 85%;
-    --ring: 174 86% 30%;
-    --radius: 0.6rem;
+    /* light: paper */
+    --background: 40 47% 94%;          /* #F6F1E7 page */
+    --card: 43 100% 99%;               /* #FFFDF8 card */
+    --card-foreground: 40 13% 9%;
+    --popover: 43 100% 99%;
+    --popover-foreground: 40 13% 9%;
+    --foreground: 40 13% 9%;           /* #1B1915 ink */
+    --muted: 40 35% 89%;               /* #EDE6D8 raised fill */
+    --muted-foreground: 35 11% 38%;    /* #6B6255 — 5.9:1 on card */
+    --border: 38 30% 81%;              /* #DDD3C2 hairline */
+    --input: 38 24% 72%;
+    --primary: 9 75% 41%;              /* #B8321A redline — 5.6:1 with paper text */
+    --primary-foreground: 43 100% 99%;
+    --secondary: 40 35% 89%;
+    --secondary-foreground: 40 13% 9%;
+    --accent: 14 65% 92%;              /* redline wash */
+    --accent-foreground: 9 76% 31%;
+    --destructive: 0 70% 42%;
+    --destructive-foreground: 43 100% 99%;
+    --warning: 43 100% 27%;            /* #8A6500 text-safe amber */
+    --highlight: 44 90% 61%;           /* #F5C542 highlighter (always with ink text) */
+    --highlight-foreground: 30 5% 7%;
+    --success: 115 36% 35%;            /* #3F7A3A freedom green */
+    --ring: 9 75% 41%;
+    --radius: 0.375rem;                /* 6px — paper, not pills */
   }
 
   .dark {
-    --background: 220 36% 6%;
-    --foreground: 210 40% 96%;
-    --card: 218 32% 11%;
-    --card-foreground: 210 40% 96%;
-    --popover: 218 32% 12%;
-    --popover-foreground: 210 40% 96%;
-    --primary: 173 80% 44%;
-    --primary-foreground: 222 47% 8%;
-    --secondary: 217 25% 18%;
-    --secondary-foreground: 210 40% 96%;
-    --muted: 217 25% 16%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 174 45% 17%;
-    --accent-foreground: 172 80% 72%;
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 216 24% 19%;
-    --input: 217 20% 24%;
-    --ring: 173 80% 44%;
+    /* dark: warm ink (primary theme) */
+    --background: 30 5% 7%;            /* #141312 */
+    --card: 30 7% 11%;                 /* #1D1B19 */
+    --card-foreground: 40 41% 89%;
+    --popover: 34 10% 14%;             /* #26231F */
+    --popover-foreground: 40 41% 89%;
+    --foreground: 40 41% 89%;          /* #EFE8DA paper text */
+    --muted: 34 10% 14%;
+    --muted-foreground: 39 12% 61%;    /* #A79E8E — 6.5:1 on card */
+    --border: 33 10% 21%;              /* #3A352F */
+    --input: 35 10% 27%;
+    --primary: 10 100% 61%;            /* #FF5B3A redline — 6:1 with ink text */
+    --primary-foreground: 30 5% 7%;
+    --secondary: 34 10% 14%;
+    --secondary-foreground: 40 41% 89%;
+    --accent: 10 45% 15%;              /* redline wash */
+    --accent-foreground: 11 100% 80%;
+    --destructive: 0 85% 64%;
+    --destructive-foreground: 30 5% 7%;
+    --warning: 44 90% 61%;             /* #F5C542 */
+    --highlight: 44 90% 61%;
+    --highlight-foreground: 30 5% 7%;
+    --success: 105 33% 62%;            /* #8FBF7F */
+    --ring: 10 100% 61%;
   }
 
   * {
     @apply border-border;
   }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
   body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background font-sans text-[15px] leading-relaxed text-foreground antialiased;
+    font-feature-settings: "ss01" 1;
+  }
+  /* Long Russian/Uzbek words (and URLs) wrap instead of overflowing a card.
+     break-word only breaks a word that would overflow, so short labels never collapse. */
+  p, h1, h2, h3, h4, li, dd, dt {
+    overflow-wrap: break-word;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+  ::selection {
+    @apply bg-highlight text-highlight-foreground;
+  }
+}
+
+@layer components {
+  /* Small uppercase mono label — form-field captions, stamps, section kickers. */
+  .label-mono {
+    @apply font-mono text-[11px] font-medium uppercase tracking-[0.08em];
+  }
+  /* The "rubber stamp" used for post types and statuses. */
+  .stamp {
+    @apply label-mono inline-flex items-center gap-1 rounded-[3px] border-[1.5px] px-1.5 py-0.5 leading-none;
+  }
+  /* Highlighter marker behind text (reasons, warnings). */
+  .highlighter {
+    @apply bg-highlight px-1 text-highlight-foreground [box-decoration-break:clone];
+  }
+  /* Red-pen strikethrough for the company someone left. */
+  .redline {
+    @apply line-through decoration-primary decoration-2;
+  }
+}
+
+@layer utilities {
+  .animate-pop {
+    animation: pop 220ms cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  .animate-publish {
+    animation: publish 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .animate-send {
+    animation: send 200ms ease-out;
+  }
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+@keyframes publish {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes send {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Motion is decoration: switch it off for people who asked for less. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

@@ -25,7 +25,7 @@ export function PostPage() {
   const q = useQuery({ queryKey: ["post", id], queryFn: () => api.get<{ post: Post }>(`/posts/${id}`) });
 
   return (
-    <Page title={q.data ? t("post.byAuthor", { name: fullName(q.data.post.author) }) : t("feed.pageTitle")}>
+    <Page title={q.data ? t("post.byAuthor", { name: q.data.post.author ? fullName(q.data.post.author) : t("post.anonymous") }) : t("feed.pageTitle")}>
       <div className="mx-auto max-w-2xl space-y-4">
         <Link to="/feed" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" aria-hidden /> {t("post.back")}

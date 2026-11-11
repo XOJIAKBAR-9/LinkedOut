@@ -93,18 +93,28 @@
     "heading": "Sizning lentangiz",
     "label": "Lenta",
     "empty": "Hozircha postlar yoʻq. Odamlar bilan bogʻlaning yoki birinchi postni yozing!",
-    "newsTitle": "LinkedOut yangiliklari",
-    "newsTip": "Maslahat: boshqa reaksiyani tanlash uchun «Yoqdi» tugmasi ustiga olib boring.",
-    "addHeadline": "Profilingizga sarlavha qoʻshing"
+    "addHeadline": "Profilingizga sarlavha qoʻshing",
+    "endTitle": "Bugun ketganlarning hammasi shu.",
+    "endBody": "Tashqariga chiqing. Yoki nimadan ketayotganingizni yozing.",
+    "endCta": "Hikoyangizni yozing"
   },
   "composer": {
-    "placeholder": "Post yozing",
     "label": "Post matni",
     "photo": "Rasm",
-    "submit": "Joylash",
     "submitting": "Joylanmoqda…",
     "removeImage": "Rasmni olib tashlash",
-    "attachment": "Tanlangan ilova"
+    "attachment": "Tanlangan ilova",
+    "prompt": "Nimadan ketyapsiz?",
+    "or": "Yoki shundan boshlang",
+    "typeLabel": "Post turi",
+    "discard": "Postni bekor qilish",
+    "headline": "Sarlavha",
+    "years": "yil",
+    "months": "oy",
+    "reasonsHint": "koʻpi bilan {{count}} ta",
+    "story": "Hikoyangiz",
+    "anonymous": "Anonim joylash",
+    "anonymousHint": "Ismingiz va rasmingiz hammadan yashiriladi. Post boshqalar uchun profilingizda koʻrinmaydi."
   },
   "post": {
     "byAuthor": "{{name}} posti",
@@ -132,13 +142,22 @@
     "replies": "{{name}} izohiga javoblar",
     "back": "Lentaga qaytish",
     "notFound": "Bu post oʻchirilgan yoki endi mavjud emas.",
-    "commentGone": "Bu izoh oʻchirilgan."
+    "commentGone": "Bu izoh oʻchirilgan.",
+    "anonymous": "Anonim",
+    "anonymousHint": "shaxsi yashirilgan",
+    "anonymousMine": "anonim joylangan, buni faqat siz koʻrasiz",
+    "typedBy": "{{type}}: {{name}}",
+    "fields": {
+      "company": "Kompaniya",
+      "role": "Lavozim",
+      "served": "Ishlagan muddati",
+      "reasons": "Sabablar"
+    }
   },
   "reactions": {
-    "LIKE": "Yoqdi",
-    "CELEBRATE": "Tabriklayman",
-    "SUPPORT": "Qoʻllab-quvvatlayman",
-    "INSIGHTFUL": "Foydali",
+    "RESPECT": "Hurmat",
+    "SAME": "Menda ham",
+    "RUN": "Qoching",
     "FUNNY": "Kulgili"
   },
   "profile": {
@@ -320,7 +339,9 @@
     "postEmpty": "Post boʻsh boʻlishi mumkin emas",
     "commentEmpty": "Izoh boʻsh boʻlishi mumkin emas",
     "tooLong": "Matn juda uzun",
-    "invalid": "Notoʻgʻri qiymat"
+    "invalid": "Notoʻgʻri qiymat",
+    "companyRequired": "Kompaniyani kiriting",
+    "tooManyReasons": "Koʻpi bilan 4 ta sabab tanlang"
   },
   "errors": {
     "BAD_REQUEST": "Soʻrovni bajarib boʻlmadi.",
@@ -352,6 +373,87 @@
     "hoursAgo_other": "{{count}} soat oldin",
     "daysAgo_one": "{{count}} kun oldin",
     "daysAgo_other": "{{count}} kun oldin",
-    "months": "yan,fev,mar,apr,may,iyn,iyl,avg,sen,okt,noy,dek"
+    "months": "yan,fev,mar,apr,may,iyn,iyl,avg,sen,okt,noy,dek",
+    "lessThanMonth": "bir oydan kam",
+    "tenureYears_one": "{{count}} yil",
+    "tenureYears_other": "{{count}} yil",
+    "tenureMonths_one": "{{count}} oy",
+    "tenureMonths_other": "{{count}} oy"
+  },
+  "postTypes": {
+    "UPDATE": {
+      "label": "Yangilik",
+      "stamp": "Yangilik",
+      "hint": "Tarmogʻingiz uchun oddiy post.",
+      "headlinePlaceholder": "",
+      "placeholder": "Nima yangiliklar?",
+      "submit": "Joylash",
+      "cta": "Yangilik yozish"
+    },
+    "QUIT": {
+      "label": "Ketdim",
+      "stamp": "Ketdim",
+      "hint": "Ketgan ishingiz haqida halol va faktlar asosida yozing.",
+      "headlinePlaceholder": "Oila qoʻshimcha ish uchun haq toʻlaydi.",
+      "placeholder": "Nima boʻldi va sizni nima ketishga majbur qildi?",
+      "submit": "Ketishimni eʼlon qilish",
+      "cta": "Ketish hikoyangizni yozing"
+    },
+    "WARNING": {
+      "label": "Bu yerga ishga kirmang",
+      "stamp": "Ishga kirmang",
+      "hint": "Boshqalarni ish beruvchi haqida ogohlantiring. Haqorat emas, faktlar.",
+      "headlinePlaceholder": "Navbatchilik — har doim degani.",
+      "placeholder": "Ariza berishdan oldin nimani bilish kerak?",
+      "submit": "Ogohlantirish",
+      "cta": "Kompaniya haqida ogohlantirish"
+    },
+    "RED_FLAG": {
+      "label": "Qizil bayroq",
+      "stamp": "Qizil bayroq",
+      "hint": "Ishga olish yoki suhbat paytida yuz bergan holat.",
+      "headlinePlaceholder": "Sakkiz soatlik bepul test topshiriq.",
+      "placeholder": "Suhbatda nima boʻldi?",
+      "submit": "Bayroqni koʻtarish",
+      "cta": "Suhbatdagi qizil bayroq haqida xabar berish"
+    }
+  },
+  "reasons": {
+    "burnout": "Charchab qolish",
+    "unpaid_overtime": "Haqsiz qoʻshimcha ish",
+    "toxic_boss": "Zaharli rahbar",
+    "low_pay": "Past maosh",
+    "no_growth": "Oʻsish yoʻq",
+    "micromanagement": "Mayda nazorat",
+    "broken_promises": "Buzilgan vaʼdalar",
+    "layoffs": "Qisqartirishlar",
+    "return_to_office": "Ofisga majburiy qaytish",
+    "discrimination": "Kamsitish",
+    "chaos": "Tartibsizlik",
+    "other": "Boshqa"
+  },
+  "sidebar": {
+    "you": "Sizning kartangiz",
+    "daysSince": "Ishdan ketganimga",
+    "daysSinceBody_one": "kun {{company}}siz",
+    "daysSinceBody_other": "kun {{company}}siz",
+    "quitCount_one": "Hozircha {{count}} ta ishdan ketilgan",
+    "quitCount_other": "Hozircha {{count}} ta ishdan ketilgan",
+    "noQuitTitle": "Hali ham oʻsha yerdamisiz?",
+    "noQuitBody": "Ketganingizda shu yerda yozing. Hisoblagich oʻsha kundan boshlanadi.",
+    "shortcuts": "Post boshlash",
+    "mostWarned": "Eng koʻp ogohlantirilgan",
+    "mostWarnedBody": "Shu haftadagi ogohlantirishlar va qizil bayroqlar.",
+    "mostWarnedEmpty": "Bu hafta birorta ham ogohlantirish yoʻq. Shubhali.",
+    "warnings_one": "{{count}} ta ogohlantirish",
+    "warnings_other": "{{count}} ta ogohlantirish",
+    "trending": "Odamlar nega ketyapti",
+    "trendingBody": "Shu oydagi ketish hikoyalarida eng koʻp sabablar.",
+    "trendingEmpty": "Bu oy hali ketish hikoyalari yoʻq.",
+    "footer": "Hikoyalar shaxsiy tajriba, tasdiqlangan fakt emas. Chegaradan oshgan narsa haqida xabar bering.",
+    "insights": "Shu hafta",
+    "thisWeek": "Shu hafta LinkedOut’da",
+    "show": "Koʻrsatish",
+    "hide": "Yashirish"
   }
 }

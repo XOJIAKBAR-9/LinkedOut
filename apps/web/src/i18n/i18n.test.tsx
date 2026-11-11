@@ -28,7 +28,7 @@ describe("i18n", () => {
   });
 
   it("has every Russian plural form", () => {
-    const ru = resources.ru.translation.post as Record<string, string>;
+    const ru = resources.ru.translation.post as unknown as Record<string, string>;
     expect(ru.reactions_one && ru.reactions_few && ru.reactions_many).toBeTruthy();
     expect(i18n.getFixedT("ru")("post.comments", { count: 1 })).toBe("1 комментарий");
     expect(i18n.getFixedT("ru")("post.comments", { count: 3 })).toBe("3 комментария");

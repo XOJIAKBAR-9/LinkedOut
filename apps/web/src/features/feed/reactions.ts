@@ -1,10 +1,10 @@
 import type { ReactionType } from "@linkedout/shared";
+import { DoorOpen, Laugh, Medal, Users, type LucideIcon } from "lucide-react";
 
-/** Labels are translated via `reactions.<TYPE>`. */
-export const REACTION_META: Record<ReactionType, { emoji: string; className: string }> = {
-  LIKE: { emoji: "👍", className: "text-blue-600 dark:text-blue-400" },
-  CELEBRATE: { emoji: "👏", className: "text-green-600 dark:text-green-400" },
-  SUPPORT: { emoji: "💜", className: "text-purple-600 dark:text-purple-400" },
-  INSIGHTFUL: { emoji: "💡", className: "text-amber-600 dark:text-amber-400" },
-  FUNNY: { emoji: "😄", className: "text-sky-600 dark:text-sky-400" },
+/** Themed reactions. Labels are translated via `reactions.<TYPE>`; colours meet AA in both themes. */
+export const REACTION_META: Record<ReactionType, { icon: LucideIcon; className: string; activeClassName: string }> = {
+  RESPECT: { icon: Medal, className: "text-primary", activeClassName: "border-primary/60 bg-accent text-accent-foreground" },
+  SAME: { icon: Users, className: "text-success", activeClassName: "border-success/60 bg-success/10 text-success" },
+  RUN: { icon: DoorOpen, className: "text-warning", activeClassName: "border-warning/60 bg-warning/10 text-warning" },
+  FUNNY: { icon: Laugh, className: "text-foreground", activeClassName: "border-foreground/40 bg-muted text-foreground" },
 };

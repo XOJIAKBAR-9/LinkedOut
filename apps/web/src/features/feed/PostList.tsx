@@ -2,15 +2,20 @@ import { useTranslation } from "react-i18next";
 import type { Paginated, Post } from "@linkedout/shared";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
+import { DoorOpen } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useComposer } from "@/stores/composer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { errorText } from "@/i18n";
 import { api } from "@/lib/api";
 import { PostCard } from "./PostCard";
 
 /** Infinite list of posts from any paginated endpoint; loads more when the sentinel scrolls into view. */
-export function PostList({ queryKey, path, empty }: { queryKey: unknown[]; path: string; empty: React.ReactNode }) {
+export function PostList({ queryKey, path, empty }: { queryKey: unknown[]; path: string; empty: string }) {
   const { t } = useTranslation();
+  const openWith = useComposer((s) => s.openWith);
   const q = useInfiniteQuery({
     queryKey: ["feed", ...queryKey],
     queryFn: ({ pageParam }) =>
@@ -45,14 +50,26 @@ export function PostList({ queryKey, path, empty }: { queryKey: unknown[]; path:
   if (q.isError) return <p role="alert" className="text-destructive">{errorText(q.error)}</p>;
 
   const posts = q.data.pages.flatMap((p) => p.items);
-  if (posts.length === 0) return <Card className="p-8 text-center text-muted-foreground">{empty}</Card>;
+  if (posts.length === 0)
+    return <EmptyState icon={DoorOpen} title={empty} action={<Button onClick={() => openWith("QUIT")}>{t("feed.endCta")}</Button>} />;
 
   return (
     <div className="space-y-4">
       {posts.map((p) => <PostCard key={p.id} post={p} />)}
       <div ref={sentinel} />
       {q.isFetchingNextPage && <p className="text-center text-sm text-muted-foreground">{t("post.loadingMore")}</p>}
-      {!q.hasNextPage && <p className="text-center text-sm text-muted-foreground">{t("post.caughtUp")}</p>}
+      {!q.hasNextPage && (
+        <EmptyState
+          icon={DoorOpen}
+          title={t("feed.endTitle")}
+          body={t("feed.endBody")}
+          action={
+            <Button variant="outline" onClick={() => openWith("QUIT")}>
+              {t("feed.endCta")}
+            </Button>
+          }
+        />
+      )}
     </div>
   );
 }

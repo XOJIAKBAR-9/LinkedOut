@@ -127,7 +127,7 @@ function useImageUpload(kind: "avatar" | "banner") {
 
 function Banner({ url, editable }: { url: string | null; editable: boolean }) {
   return (
-    <div className="relative h-40 bg-gradient-to-br from-teal-400 via-cyan-600 to-sky-800 sm:h-48">
+    <div className="relative h-40 bg-muted bg-[repeating-linear-gradient(0deg,transparent_0,transparent_27px,hsl(var(--border))_27px,hsl(var(--border))_28px)] sm:h-48">
       {url && <img src={url} alt="" className="absolute inset-0 h-full w-full object-cover" />}
       {editable && <BannerPicker current={url} />}
     </div>

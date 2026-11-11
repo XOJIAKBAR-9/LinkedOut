@@ -1,4 +1,14 @@
-import type { Comment, Paginated, Post, ReactionType } from "@linkedout/shared";
+import {
+  type Comment,
+  type CreatePostData,
+  type FeedInsights,
+  type Paginated,
+  type Post,
+  QUIT_REASONS,
+  type QuitReason,
+  REACTION_TYPES,
+  type ReactionType,
+} from "@linkedout/shared";
 import type { Prisma } from "@prisma/client";
 import { forbidden, notFound } from "../lib/errors.js";
 import { prisma } from "../lib/prisma.js";
@@ -10,22 +20,60 @@ import { notify } from "./notification.service.js";
 const postInclude = (viewerId: string) =>
   ({
     author: { select: publicUserSelect },
+    company: { select: { id: true, name: true, slug: true } },
     _count: { select: { comments: true, reactions: true } },
     reactions: { where: { userId: viewerId }, select: { type: true }, take: 1 },
   }) satisfies Prisma.PostInclude;
 
 type PostRow = Prisma.PostGetPayload<{ include: ReturnType<typeof postInclude> }>;
 
-const toPost = (p: PostRow): Post => ({
-  id: p.id,
-  content: p.content,
-  imageUrl: p.imageUrl,
-  createdAt: p.createdAt.toISOString(),
-  author: p.author,
-  commentCount: p._count.comments,
-  reactionCount: p._count.reactions,
-  myReaction: p.reactions[0]?.type ?? null,
-});
+const emptyCounts = (): Record<ReactionType, number> =>
+  Object.fromEntries(REACTION_TYPES.map((t) => [t, 0])) as Record<ReactionType, number>;
+
+/** Reaction counts per type for a set of posts, in one query. */
+async function reactionCountsFor(postIds: string[]) {
+  const map = new Map<string, Record<ReactionType, number>>();
+  if (postIds.length === 0) return map;
+  const rows = await prisma.reaction.groupBy({ by: ["postId", "type"], where: { postId: { in: postIds } }, _count: true });
+  for (const r of rows) {
+    const counts = map.get(r.postId) ?? emptyCounts();
+    counts[r.type] = r._count;
+    map.set(r.postId, counts);
+  }
+  return map;
+}
+
+const isReason = (r: string): r is QuitReason => (QUIT_REASONS as readonly string[]).includes(r);
+
+/** Anonymous posts never expose their author to anyone but the author. */
+const toPost = (p: PostRow, viewerId: string, counts?: Record<ReactionType, number>): Post => {
+  const isMine = p.authorId === viewerId;
+  return {
+    id: p.id,
+    type: p.type,
+    headline: p.headline,
+    content: p.content,
+    imageUrl: p.imageUrl,
+    createdAt: p.createdAt.toISOString(),
+    author: p.anonymous && !isMine ? null : p.author,
+    anonymous: p.anonymous,
+    isMine,
+    companyName: p.companyName,
+    company: p.company,
+    role: p.role,
+    tenureMonths: p.tenureMonths,
+    reasons: p.reasons.filter(isReason),
+    commentCount: p._count.comments,
+    reactionCount: p._count.reactions,
+    reactionCounts: counts ?? emptyCounts(),
+    myReaction: p.reactions[0]?.type ?? null,
+  };
+};
+
+async function toPosts(rows: PostRow[], viewerId: string): Promise<Post[]> {
+  const counts = await reactionCountsFor(rows.map((r) => r.id));
+  return rows.map((r) => toPost(r, viewerId, counts.get(r.id)));
+}
 
 async function page(
   viewerId: string,
@@ -41,34 +89,99 @@ async function page(
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
   });
   const items = rows.slice(0, limit);
-  return { items: items.map(toPost), nextCursor: rows.length > limit ? items.at(-1)!.id : null };
+  return { items: await toPosts(items, viewerId), nextCursor: rows.length > limit ? items.at(-1)!.id : null };
 }
 
 /**
- * Posts from you and your connections. Users with no connections yet see
- * everyone's posts so the feed is never empty on day one.
+ * Updates from you and your connections, plus every quit story, warning and red flag
+ * (those are public-interest posts, so they're shown to everyone). Users with no
+ * connections yet see everything so the feed is never empty on day one.
  */
 export async function feed(viewerId: string, cursor: string | undefined, limit: number) {
   const network = await connectedUserIds(viewerId);
   const where: Prisma.PostWhereInput =
-    network.length > 0 ? { groupId: null, authorId: { in: [viewerId, ...network] } } : { groupId: null };
+    network.length > 0
+      ? { groupId: null, OR: [{ authorId: { in: [viewerId, ...network] } }, { type: { not: "UPDATE" } }] }
+      : { groupId: null };
   return page(viewerId, where, cursor, limit);
 }
 
+/** A person's posts. Their anonymous posts are only listed for themselves. */
 export async function byAuthor(viewerId: string, authorId: string, cursor: string | undefined, limit: number) {
-  return page(viewerId, { authorId, groupId: null }, cursor, limit);
+  const where: Prisma.PostWhereInput = { authorId, groupId: null, ...(viewerId === authorId ? {} : { anonymous: false }) };
+  return page(viewerId, where, cursor, limit);
 }
 
 export async function getPost(viewerId: string, postId: string): Promise<Post> {
   const p = await prisma.post.findUnique({ where: { id: postId }, include: postInclude(viewerId) });
   if (!p) throw notFound("Post");
-  return toPost(p);
+  const [post] = await toPosts([p], viewerId);
+  return post!;
 }
 
-export async function create(authorId: string, content: string, image?: Express.Multer.File): Promise<Post> {
+/** Links a typed post to a known company when the name matches (case-insensitive). */
+async function findCompanyId(name: string | undefined) {
+  if (!name) return null;
+  const c = await prisma.company.findFirst({ where: { name: { equals: name, mode: "insensitive" } }, select: { id: true } });
+  return c?.id ?? null;
+}
+
+export async function create(authorId: string, data: CreatePostData, image?: Express.Multer.File): Promise<Post> {
   const imageUrl = image ? (await storage.save(image.buffer, image.originalname, "posts")).url : null;
-  const p = await prisma.post.create({ data: { authorId, content, imageUrl }, include: postInclude(authorId) });
-  return toPost(p);
+  const p = await prisma.post.create({
+    data: {
+      authorId,
+      imageUrl,
+      type: data.type,
+      headline: data.headline ?? null,
+      content: data.content,
+      companyName: data.companyName ?? null,
+      companyId: await findCompanyId(data.companyName),
+      role: data.role ?? null,
+      tenureMonths: data.tenureMonths ?? null,
+      reasons: data.reasons,
+      anonymous: data.anonymous,
+    },
+    include: postInclude(authorId),
+  });
+  const [post] = await toPosts([p], authorId);
+  return post!;
+}
+
+/** Sidebar data: most-warned companies this week, trending quit reasons, and your own quit counter. */
+export async function insights(viewerId: string): Promise<FeedInsights> {
+  const week = new Date(Date.now() - 7 * 24 * 3600 * 1000);
+  const month = new Date(Date.now() - 30 * 24 * 3600 * 1000);
+
+  const [warned, reasons, myQuits] = await Promise.all([
+    prisma.$queryRaw<{ name: string; slug: string | null; count: bigint }[]>`
+      SELECT COALESCE(c.name, MIN(p."companyName")) AS name, c.slug, COUNT(*) AS count
+      FROM "Post" p LEFT JOIN "Company" c ON c.id = p."companyId"
+      WHERE p.type IN ('WARNING', 'RED_FLAG') AND p."createdAt" >= ${week} AND p."companyName" IS NOT NULL
+      GROUP BY COALESCE(c.id, lower(p."companyName")), c.name, c.slug
+      ORDER BY count DESC, name ASC
+      LIMIT 5`,
+    prisma.$queryRaw<{ reason: string; count: bigint }[]>`
+      SELECT r AS reason, COUNT(*) AS count
+      FROM "Post" p, unnest(p.reasons) AS r
+      WHERE p.type = 'QUIT' AND p."createdAt" >= ${month}
+      GROUP BY r ORDER BY count DESC, r ASC LIMIT 6`,
+    prisma.post.findMany({
+      where: { authorId: viewerId, type: "QUIT" },
+      orderBy: { createdAt: "desc" },
+      select: { createdAt: true, companyName: true },
+    }),
+  ]);
+
+  return {
+    mostWarned: warned.map((w) => ({ name: w.name, slug: w.slug, count: Number(w.count) })),
+    trendingReasons: reasons.filter((r) => isReason(r.reason)).map((r) => ({ reason: r.reason as QuitReason, count: Number(r.count) })),
+    me: {
+      lastQuitAt: myQuits[0]?.createdAt.toISOString() ?? null,
+      lastQuitCompany: myQuits[0]?.companyName ?? null,
+      quitCount: myQuits.length,
+    },
+  };
 }
 
 export async function remove(userId: string, postId: string) {

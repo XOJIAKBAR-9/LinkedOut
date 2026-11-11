@@ -96,6 +96,7 @@ model Company {
   searchVector Unsupported("tsvector")? @default(dbgenerated())
 
   experiences Experience[]
+  posts       Post[]
 
   @@index([searchVector], type: Gin)
 }
@@ -139,14 +140,32 @@ model Connection {
 
 // ─── Feed ─────────────────────────────────────────────────────
 
+enum PostType {
+  UPDATE
+  QUIT
+  WARNING
+  RED_FLAG
+}
+
 model Post {
-  id        String   @id @default(cuid())
-  authorId  String
-  content   String
-  imageUrl  String?
-  groupId   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  authorId     String
+  type         PostType @default(UPDATE)
+  /// One-line summary shown big on typed posts ("Families pay overtime.").
+  headline     String?
+  content      String
+  imageUrl     String?
+  /// Structured fields for QUIT / WARNING / RED_FLAG posts.
+  companyName  String?
+  companyId    String?
+  role         String?
+  tenureMonths Int?
+  reasons      String[] @default([])
+  /// Author hidden from everyone but themselves.
+  anonymous    Boolean  @default(false)
+  groupId      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   searchVector Unsupported("tsvector")? @default(dbgenerated())
 
@@ -155,9 +174,12 @@ model Post {
   comments      Comment[]
   reactions     Reaction[]
   notifications Notification[]
+  company       Company?       @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
   @@index([createdAt(sort: Desc), id])
   @@index([authorId])
+  @@index([type, createdAt])
+  @@index([companyId])
   @@index([searchVector], type: Gin)
 }
 
@@ -183,10 +205,9 @@ model Comment {
 }
 
 enum ReactionType {
-  LIKE
-  CELEBRATE
-  SUPPORT
-  INSIGHTFUL
+  RESPECT
+  SAME
+  RUN
   FUNNY
 }
 

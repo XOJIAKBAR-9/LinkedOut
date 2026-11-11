@@ -51,11 +51,11 @@ describe("posts", () => {
     const { body } = await author.agent.post("/api/v1/posts").field("content", "Big news").expect(201);
     const postId = body.post.id as string;
 
-    const reacted = await reader.agent.put(`/api/v1/posts/${postId}/reaction`).send({ type: "CELEBRATE" }).expect(200);
-    expect(reacted.body.post).toMatchObject({ reactionCount: 1, myReaction: "CELEBRATE" });
+    const reacted = await reader.agent.put(`/api/v1/posts/${postId}/reaction`).send({ type: "RESPECT" }).expect(200);
+    expect(reacted.body.post).toMatchObject({ reactionCount: 1, myReaction: "RESPECT" });
     // Changing the reaction type keeps one reaction per user.
-    const changed = await reader.agent.put(`/api/v1/posts/${postId}/reaction`).send({ type: "LIKE" }).expect(200);
-    expect(changed.body.post).toMatchObject({ reactionCount: 1, myReaction: "LIKE" });
+    const changed = await reader.agent.put(`/api/v1/posts/${postId}/reaction`).send({ type: "SAME" }).expect(200);
+    expect(changed.body.post).toMatchObject({ reactionCount: 1, myReaction: "SAME" });
 
     await reader.agent.post(`/api/v1/posts/${postId}/comments`).send({ content: "Congrats!" }).expect(201);
     const comments = await author.agent.get(`/api/v1/posts/${postId}/comments`).expect(200);
@@ -103,7 +103,7 @@ describe("posts", () => {
     const alice = await signUp();
     const bob = await signUp();
     const postId = (await author.agent.post("/api/v1/posts").field("content", "Hi").expect(201)).body.post.id;
-    await alice.agent.put(`/api/v1/posts/${postId}/reaction`).send({ type: "LIKE" }).expect(200);
+    await alice.agent.put(`/api/v1/posts/${postId}/reaction`).send({ type: "SAME" }).expect(200);
     const top = (await alice.agent.post(`/api/v1/posts/${postId}/comments`).send({ content: "Top" }).expect(201)).body.comment;
     const reply = (await bob.agent.post(`/api/v1/posts/${postId}/comments`).send({ content: "Re", parentId: top.id }).expect(201)).body.comment;
 

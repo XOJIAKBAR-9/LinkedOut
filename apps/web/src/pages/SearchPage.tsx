@@ -14,7 +14,7 @@ import { cn, fullName, timeAgo } from "@/lib/utils";
 type Tab = "all" | "people" | "posts" | "companies";
 interface Results {
   people: PublicUser[];
-  posts: { id: string; content: string; createdAt: string; author: PublicUser }[];
+  posts: { id: string; content: string; createdAt: string; author: PublicUser | null }[];
   companies: { id: string; name: string; slug: string; industry: string | null }[];
 }
 
@@ -88,7 +88,14 @@ export function SearchPage() {
             <ul className="divide-y">
               {r.posts.map((p) => (
                 <li key={p.id} className="py-3">
-                  <p className="text-sm"><Link to={`/in/${p.author.id}`} className="font-medium hover:underline">{fullName(p.author)}</Link> · <span className="text-muted-foreground">{timeAgo(p.createdAt)}</span></p>
+                  <p className="text-sm">
+                    {p.author ? (
+                      <Link to={`/in/${p.author.id}`} className="font-medium hover:underline">{fullName(p.author)}</Link>
+                    ) : (
+                      <span className="font-medium">{t("post.anonymous")}</span>
+                    )}{" "}
+                    · <Link to={`/posts/${p.id}`} className="text-muted-foreground hover:underline">{timeAgo(p.createdAt)}</Link>
+                  </p>
                   <p className="line-clamp-3 whitespace-pre-wrap text-sm">{p.content}</p>
                 </li>
               ))}

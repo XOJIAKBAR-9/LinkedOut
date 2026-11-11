@@ -14,6 +14,7 @@ import { ProfilePage } from "@/pages/ProfilePage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { SearchPage } from "@/pages/SearchPage";
 import { SettingsPage } from "@/pages/SettingsPage";
+import { StyleGuidePage } from "@/pages/StyleGuidePage";
 
 export function App() {
   useAuthBootstrap();
@@ -41,6 +42,7 @@ export function App() {
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>
+      <Route path="/styleguide" element={<StyleGuidePage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

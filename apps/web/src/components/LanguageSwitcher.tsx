@@ -12,7 +12,7 @@ export function LanguageSwitcher() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="gap-1 px-2" aria-label={t("language.change")}>
           <Languages />
-          <span className="text-xs font-semibold">{current.short}</span>
+          <span className="whitespace-nowrap text-xs font-semibold">{current.short}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

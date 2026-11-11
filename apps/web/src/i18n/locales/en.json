@@ -93,18 +93,28 @@
     "heading": "Your feed",
     "label": "Feed",
     "empty": "No posts yet. Connect with people or write the first one!",
-    "newsTitle": "LinkedOut News",
-    "newsTip": "Tip: hover the Like button to pick a different reaction.",
-    "addHeadline": "Add a headline to your profile"
+    "addHeadline": "Add a headline to your profile",
+    "endTitle": "That's everyone who walked out today.",
+    "endBody": "Go outside. Or tell us what you're walking away from.",
+    "endCta": "Tell your story"
   },
   "composer": {
-    "placeholder": "Start a post",
     "label": "Post content",
     "photo": "Photo",
-    "submit": "Post",
     "submitting": "Posting…",
     "removeImage": "Remove image",
-    "attachment": "Selected attachment"
+    "attachment": "Selected attachment",
+    "prompt": "What are you walking away from?",
+    "or": "Or start with",
+    "typeLabel": "Post type",
+    "discard": "Discard post",
+    "headline": "Headline",
+    "years": "years",
+    "months": "months",
+    "reasonsHint": "pick up to {{count}}",
+    "story": "Your story",
+    "anonymous": "Post anonymously",
+    "anonymousHint": "Your name and photo are hidden from everyone. The post won't appear on your profile for others."
   },
   "post": {
     "byAuthor": "Post by {{name}}",
@@ -132,13 +142,22 @@
     "replies": "Replies to {{name}}",
     "back": "Back to feed",
     "notFound": "This post was deleted or isn't available anymore.",
-    "commentGone": "That comment was deleted."
+    "commentGone": "That comment was deleted.",
+    "anonymous": "Anonymous",
+    "anonymousHint": "identity hidden",
+    "anonymousMine": "posted anonymously, only you can see it's yours",
+    "typedBy": "{{type}} by {{name}}",
+    "fields": {
+      "company": "Company",
+      "role": "Role",
+      "served": "Time served",
+      "reasons": "Reasons"
+    }
   },
   "reactions": {
-    "LIKE": "Like",
-    "CELEBRATE": "Celebrate",
-    "SUPPORT": "Support",
-    "INSIGHTFUL": "Insightful",
+    "RESPECT": "Respect",
+    "SAME": "Same",
+    "RUN": "Run",
     "FUNNY": "Funny"
   },
   "profile": {
@@ -320,7 +339,9 @@
     "postEmpty": "Post can't be empty",
     "commentEmpty": "Comment can't be empty",
     "tooLong": "This is too long",
-    "invalid": "This value isn't valid"
+    "invalid": "This value isn't valid",
+    "companyRequired": "Name the company",
+    "tooManyReasons": "Pick up to 4 reasons"
   },
   "errors": {
     "BAD_REQUEST": "That request couldn't be processed.",
@@ -352,6 +373,87 @@
     "hoursAgo_other": "{{count}} hr ago",
     "daysAgo_one": "{{count}} day ago",
     "daysAgo_other": "{{count}} days ago",
-    "months": "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec"
+    "months": "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec",
+    "lessThanMonth": "under a month",
+    "tenureYears_one": "{{count}} yr",
+    "tenureYears_other": "{{count}} yrs",
+    "tenureMonths_one": "{{count}} mo",
+    "tenureMonths_other": "{{count}} mo"
+  },
+  "postTypes": {
+    "UPDATE": {
+      "label": "Update",
+      "stamp": "Update",
+      "hint": "A regular post for your network.",
+      "headlinePlaceholder": "",
+      "placeholder": "What's going on?",
+      "submit": "Post",
+      "cta": "Post an update"
+    },
+    "QUIT": {
+      "label": "I quit",
+      "stamp": "I quit",
+      "hint": "Tell the story of a job you left. Be honest, stick to what happened.",
+      "headlinePlaceholder": "Families pay overtime.",
+      "placeholder": "What happened, and what finally made you leave?",
+      "submit": "Publish my exit",
+      "cta": "Tell your quit story"
+    },
+    "WARNING": {
+      "label": "Don't apply here",
+      "stamp": "Don't apply here",
+      "hint": "Warn others about a workplace. Facts beat insults.",
+      "headlinePlaceholder": "On-call means always.",
+      "placeholder": "What should people know before applying?",
+      "submit": "Post warning",
+      "cta": "Warn others about a company"
+    },
+    "RED_FLAG": {
+      "label": "Red flag",
+      "stamp": "Red flag",
+      "hint": "Something that happened during hiring or an interview.",
+      "headlinePlaceholder": "Eight-hour unpaid take-home test.",
+      "placeholder": "What happened in the interview?",
+      "submit": "Raise the flag",
+      "cta": "Report an interview red flag"
+    }
+  },
+  "reasons": {
+    "burnout": "Burnout",
+    "unpaid_overtime": "Unpaid overtime",
+    "toxic_boss": "Toxic boss",
+    "low_pay": "Low pay",
+    "no_growth": "No growth",
+    "micromanagement": "Micromanagement",
+    "broken_promises": "Broken promises",
+    "layoffs": "Layoffs",
+    "return_to_office": "Forced return to office",
+    "discrimination": "Discrimination",
+    "chaos": "Chaos",
+    "other": "Other"
+  },
+  "sidebar": {
+    "you": "Your card",
+    "daysSince": "Days since I quit",
+    "daysSinceBody_one": "day without {{company}}",
+    "daysSinceBody_other": "days without {{company}}",
+    "quitCount_one": "{{count}} job quit so far",
+    "quitCount_other": "{{count}} jobs quit so far",
+    "noQuitTitle": "Still there?",
+    "noQuitBody": "When you leave, tell the story here. The counter starts that day.",
+    "shortcuts": "Start a post",
+    "mostWarned": "Most warned about",
+    "mostWarnedBody": "Warnings and red flags this week.",
+    "mostWarnedEmpty": "No warnings this week. Suspicious.",
+    "warnings_one": "{{count}} warning",
+    "warnings_other": "{{count}} warnings",
+    "trending": "Why people are leaving",
+    "trendingBody": "Top reasons in quit stories this month.",
+    "trendingEmpty": "No quit stories this month yet.",
+    "footer": "Stories are personal accounts, not verified facts. Report anything that crosses a line.",
+    "insights": "This week",
+    "thisWeek": "This week on LinkedOut",
+    "show": "Show",
+    "hide": "Hide"
   }
 }

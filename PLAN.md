@@ -57,6 +57,23 @@ apps/api/src
   non-GET with JSON or multipart bodies. Add a double-submit token if the API is ever served cross-site.
 - Socket.IO authenticates with the same access cookie (or `auth.token`).
 
+## Design system — "Exit interview"
+
+Redline on paper: honest, a little rebellious, trustworthy. Dark (warm ink) is the primary theme; light is warm paper.
+Live reference with every token and component: **`/styleguide`**.
+
+- **Colour tokens** (`apps/web/src/index.css`): ink `#141312` / paper `#F6F1E7`, redline `#FF5B3A` (light `#B8321A`)
+  for actions and quit stories, highlighter `#F5C542` for warnings and reasons, freedom green `#8FBF7F`. All text pairs ≥ 4.5:1.
+- **Type**: Source Serif 4 (display, italic headlines) · IBM Plex Sans (UI) · IBM Plex Mono (structured fields, stamps).
+  Self-hosted via Fontsource with Cyrillic + Latin Extended. Scale: 11 / 12 / 13 / 15 / 17 / 20 / 24 / 30 / 36.
+- **Shape**: 4px spacing grid; 3px stamps, 6px controls/cards, full radius for avatars and reaction pills.
+  Elevation is borders, not shadows (only menus/dialogs cast one).
+- **Components**: Button (one redline primary per view), Input/Textarea, Card, Avatar, Badge (`stamp`, `highlight`, …), EmptyState.
+- **Motion**: reaction pop, post publish, chat send — nothing else; all disabled under `prefers-reduced-motion`.
+- **Post types**: Update · I quit (tilted red-pen stamp, company struck through) · Don't apply here (highlighter band) ·
+  Red flag (redline bar). Typed posts carry company, role, time served and up to 4 reason tags, and may be anonymous.
+- **Reactions**: Respect · Same · Run · Funny (Lucide icons, no emoji).
+
 ## Internationalisation
 
 - **react-i18next** with one JSON file per language in `apps/web/src/i18n/locales` (`en`, `ru`, `uz`).

@@ -7,7 +7,7 @@
  * Demo login: demo@linkedout.test / password123
  */
 import { faker } from "@faker-js/faker";
-import { BANNER_PRESETS, bannerPresetUrl } from "@linkedout/shared";
+import { BANNER_PRESETS, QUIT_REASONS, bannerPresetUrl } from "@linkedout/shared";
 import { PrismaClient, type ReactionType } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
@@ -54,29 +54,43 @@ const POST_TEMPLATES = [
   () => `Reading recommendation: anything about ${faker.word.noun()} and ${faker.word.noun()}. ${faker.lorem.sentence()}`,
 ];
 
-const REACTIONS: ReactionType[] = ["LIKE", "LIKE", "LIKE", "CELEBRATE", "SUPPORT", "INSIGHTFUL", "FUNNY"];
+const REACTIONS: ReactionType[] = ["RESPECT", "RESPECT", "RESPECT", "SAME", "SAME", "RUN", "FUNNY"];
+
+const QUIT_HEADLINES = [
+  "Families pay overtime.",
+  "The 'unlimited PTO' had a limit: zero.",
+  "I was promoted to doing two jobs.",
+  "Our 'flat hierarchy' had a very tall boss.",
+  "Left on a Tuesday. Slept on a Wednesday.",
+  "The free snacks were not worth it.",
+  "My calendar had more meetings than hours.",
+  "They called it agile. It was just chaos.",
+];
+const WARNING_HEADLINES = [
+  "Don't believe the 'competitive salary'.",
+  "Three managers in six months.",
+  "On-call means always.",
+  "Interview says remote. Contract says office.",
+];
+const RED_FLAG_HEADLINES = [
+  "Eight-hour unpaid take-home test.",
+  "Asked how I feel about weekends.",
+  "Six rounds, then ghosted.",
+  "'We're like a family here.'",
+];
 
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
 async function main() {
-  console.log("Clearing existing data…");
-  await prisma.$transaction([
-    prisma.notification.deleteMany(),
-    prisma.message.deleteMany(),
-    prisma.conversationParticipant.deleteMany(),
-    prisma.conversation.deleteMany(),
-    prisma.reaction.deleteMany(),
-    prisma.comment.deleteMany(),
-    prisma.post.deleteMany(),
-    prisma.groupMember.deleteMany(),
-    prisma.group.deleteMany(),
-    prisma.connection.deleteMany(),
-    prisma.experience.deleteMany(),
-    prisma.company.deleteMany(),
-    prisma.refreshToken.deleteMany(),
-    prisma.emailToken.deleteMany(),
-    prisma.user.deleteMany(),
-  ]);
+  // Only sample data is replaced. Real accounts (isSample = false) and everything they created are kept;
+  // their links to sample users (connections, chats, comments on sample posts) go away with those users.
+  console.log("Removing previous sample data (real accounts are kept)…");
+  const realUsers = await prisma.user.count({ where: { isSample: false } });
+  await prisma.user.deleteMany({ where: { isSample: true } });
+  await prisma.conversation.deleteMany({ where: { participants: { none: {} } } });
+  await prisma.group.deleteMany({ where: { members: { none: {} } } });
+  await prisma.company.deleteMany();
+  console.log(`Kept ${realUsers} real account(s).`);
 
   const passwordHash = await bcrypt.hash("password123", 10);
 
@@ -192,13 +206,35 @@ async function main() {
   for (let i = 0; i < 200; i++) {
     const author = faker.helpers.arrayElement(users);
     const createdAt = faker.date.recent({ days: 60 });
+    // ~45% updates, then quit stories, "don't apply here" warnings and interview red flags.
+    const type = faker.helpers.weightedArrayElement([
+      { weight: 45, value: "UPDATE" as const },
+      { weight: 25, value: "QUIT" as const },
+      { weight: 15, value: "WARNING" as const },
+      { weight: 15, value: "RED_FLAG" as const },
+    ]);
+    const company = faker.helpers.arrayElement(companies);
+    const typed = type !== "UPDATE";
     const post = await prisma.post.create({
       data: {
         authorId: author.id,
-        content: faker.helpers.arrayElement(POST_TEMPLATES)(),
-        imageUrl: faker.number.float() < 0.2 ? `https://picsum.photos/seed/lo${i}/800/450` : null,
-        groupId: faker.number.float() < 0.1 ? faker.helpers.arrayElement(groups).id : null,
-        createdAt,
+        type,
+        headline:
+          type === "QUIT" ? faker.helpers.arrayElement(QUIT_HEADLINES)
+          : type === "WARNING" ? faker.helpers.arrayElement(WARNING_HEADLINES)
+          : type === "RED_FLAG" ? faker.helpers.arrayElement(RED_FLAG_HEADLINES)
+          : null,
+        content: typed ? faker.lorem.sentences({ min: 2, max: 4 }) : faker.helpers.arrayElement(POST_TEMPLATES)(),
+        imageUrl: !typed && faker.number.float() < 0.2 ? `https://picsum.photos/seed/lo${i}/800/450` : null,
+        groupId: !typed && faker.number.float() < 0.1 ? faker.helpers.arrayElement(groups).id : null,
+        companyName: typed ? company.name : null,
+        companyId: typed ? company.id : null,
+        role: typed ? faker.helpers.arrayElement(TITLES) : null,
+        tenureMonths: type === "QUIT" || type === "WARNING" ? faker.number.int({ min: 2, max: 72 }) : null,
+        reasons: type === "QUIT" || type === "WARNING" ? faker.helpers.arrayElements([...QUIT_REASONS], { min: 1, max: 3 }) : [],
+        anonymous: typed && faker.number.float() < 0.25,
+        // Typed posts cluster in the last two weeks so the "this week" sidebar has data.
+        createdAt: typed ? faker.date.recent({ days: 14 }) : createdAt,
       },
     });
 
@@ -209,7 +245,7 @@ async function main() {
           postId: post.id,
           authorId: c.id,
           content: faker.helpers.arrayElement(["Congrats! 🎉", "Great insight.", "Thanks for sharing!", faker.lorem.sentence()]),
-          createdAt: faker.date.between({ from: createdAt, to: new Date() }),
+          createdAt: faker.date.between({ from: post.createdAt, to: new Date() }),
         })),
       });
     }

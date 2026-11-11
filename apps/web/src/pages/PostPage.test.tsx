@@ -5,12 +5,13 @@ import { useAuth } from "@/stores/auth";
 import { mockFetch, renderWithProviders } from "@/test/render";
 import { notificationLink } from "./NotificationsPage";
 import { PostPage } from "./PostPage";
+import { makePost } from "@/test/fixtures";
 
 const person = (id: string, firstName: string) => ({ id, firstName, lastName: "Test", headline: null, avatarUrl: null, location: null });
 const ada = person("ada", "Ada");
 const bob = person("bob", "Bob");
 const now = new Date().toISOString();
-const post: Post = { id: "p1", content: "Big news", imageUrl: null, createdAt: now, author: ada, commentCount: 2, reactionCount: 0, myReaction: null };
+const post: Post = makePost({ content: "Big news", author: ada, commentCount: 2 });
 const top: Comment = { id: "c1", content: "Congrats", createdAt: now, author: bob, parentId: null, replyTo: null, replyCount: 1 };
 const reply: Comment = { id: "r1", content: "Thank you!", createdAt: now, author: ada, parentId: "c1", replyTo: bob, replyCount: 0 };
 

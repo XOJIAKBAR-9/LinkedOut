@@ -15,10 +15,14 @@ export async function get(req: Request, res: Response) {
   res.json({ post: await posts.getPost(currentUserId(req), id(req)) });
 }
 
-/** multipart/form-data: `content` field + optional `image` file. */
+/** multipart/form-data: post fields (see createPostSchema) + optional `image` file. */
 export async function create(req: Request, res: Response) {
-  const { content } = createPostSchema.parse(req.body);
-  res.status(201).json({ post: await posts.create(currentUserId(req), content, req.file) });
+  const data = createPostSchema.parse(req.body);
+  res.status(201).json({ post: await posts.create(currentUserId(req), data, req.file) });
+}
+
+export async function insights(req: Request, res: Response) {
+  res.json(await posts.insights(currentUserId(req)));
 }
 
 export async function remove(req: Request, res: Response) {

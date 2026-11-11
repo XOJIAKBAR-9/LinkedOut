@@ -32,15 +32,15 @@ function NavItem({ to, icon: Icon, label, badge }: { to: string; icon: typeof Ho
       to={to}
       className={({ isActive }) =>
         cn(
-          "relative flex flex-col items-center gap-0.5 px-3 py-1 text-xs text-muted-foreground hover:text-foreground",
+          "relative flex min-h-11 min-w-11 flex-col items-center justify-center gap-0.5 px-1.5 py-1 text-xs text-muted-foreground hover:text-foreground sm:px-3",
           isActive && "text-primary after:absolute after:-bottom-[9px] after:h-0.5 after:w-full after:rounded-full after:bg-primary",
         )
       }
     >
       <Icon className="h-5 w-5" aria-hidden />
-      <span className="hidden sm:inline">{label}</span>
+      <span className="sr-only xl:not-sr-only">{label}</span>
       {!!badge && (
-        <span className="absolute right-2 top-0 min-w-4 rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground" aria-label={t("nav.unread", { count: badge })}>
+        <span className="absolute right-1 top-0 min-w-4 rounded-full bg-primary px-1 font-mono text-[11px] font-medium leading-4 text-primary-foreground" aria-label={t("nav.unread", { count: badge })}>
           {badge > 99 ? "99+" : badge}
         </span>
       )}
@@ -75,9 +75,9 @@ export function AppLayout() {
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-background focus:p-2">
         {t("nav.skipToContent")}
       </a>
-      <header className="sticky top-0 z-40 border-b bg-card/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80">
-        <div className="h-1 bg-gradient-to-r from-teal-400 via-cyan-500 to-amber-300" aria-hidden />
-        <div className="container flex h-14 items-center gap-3">
+      <header className="sticky top-0 z-40 border-b bg-background">
+        <div className="h-[3px] bg-primary" aria-hidden />
+        <div className="container flex h-14 items-center gap-1 sm:gap-3">
           <NavLink to="/feed" aria-label={t("nav.homeLink")} className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <Logo showWordmark={false} className="lg:hidden" />
             <Logo className="hidden lg:inline-flex" />
@@ -90,8 +90,11 @@ export function AppLayout() {
             <NavItem to="/notifications" icon={Bell} label={t("nav.notifications")} badge={notifications.data?.unread} />
             <NavItem to="/search" icon={Search} label={t("nav.search")} />
           </nav>
-          <LanguageSwitcher />
-          <ThemeToggle />
+          {/* Phones: language and theme move to Settings (account menu), so the avatar always fits. */}
+          <div className="hidden items-center sm:flex">
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full" aria-label={t("nav.accountMenu")}>

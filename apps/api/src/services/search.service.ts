@@ -8,6 +8,7 @@ interface PostRow {
   content: string;
   createdAt: Date;
   rank: number;
+  anonymous: boolean;
   authorId: string;
   authorFirstName: string;
   authorLastName: string;
@@ -57,7 +58,7 @@ export async function search(q: string, type: "all" | "people" | "posts" | "comp
       : [],
     want("posts")
       ? prisma.$queryRaw<PostRow[]>`
-          SELECT p.id, p.content, p."createdAt",
+          SELECT p.id, p.content, p."createdAt", p.anonymous,
                  ts_rank(p."searchVector", ${tsq}) AS rank,
                  u.id AS "authorId", u."firstName" AS "authorFirstName", u."lastName" AS "authorLastName",
                  u.headline AS "authorHeadline", u."avatarUrl" AS "authorAvatarUrl", u.location AS "authorLocation"
@@ -82,7 +83,8 @@ export async function search(q: string, type: "all" | "people" | "posts" | "comp
       id: p.id,
       content: p.content,
       createdAt: p.createdAt.toISOString(),
-      author: {
+      // Never reveal who wrote an anonymous post.
+      author: p.anonymous ? null : {
         id: p.authorId,
         firstName: p.authorFirstName,
         lastName: p.authorLastName,

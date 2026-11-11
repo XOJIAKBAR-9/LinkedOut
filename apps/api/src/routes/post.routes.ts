@@ -10,6 +10,7 @@ export const postRouter = Router();
 postRouter.use(requireAuth);
 
 postRouter.get("/", validate(paginationSchema, "query"), h(c.feed));
+postRouter.get("/insights", h(c.insights));
 // Body is validated in the controller because multer parses it after the route matches.
 postRouter.post("/", imageUpload.single("image"), h(c.create));
 postRouter.get("/:id", h(c.get));
